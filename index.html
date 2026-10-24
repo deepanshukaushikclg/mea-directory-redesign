@@ -383,8 +383,15 @@ function closeTour() {
   $("#mea-fdet").open = tour.det; $("#mea-q").focus();
 }
 function autoTour() {
-  let off = false; try { off = localStorage.getItem(TOUR_KEY) === "1"; } catch (e) {}
-  if (new URLSearchParams(location.search).get("tutorial") !== "off" && !off) startTour();
+  // First visit only: remember that the tour has been shown, so refreshing never restarts it. "How to use" still opens it on demand.
+  const SEEN_KEY = "mea-tour-seen";
+  let off = false, seen = false;
+  try { off = localStorage.getItem(TOUR_KEY) === "1"; seen = localStorage.getItem(SEEN_KEY) === "1"; } catch (e) {}
+  try { seen = seen || sessionStorage.getItem(SEEN_KEY) === "1"; } catch (e) {}
+  if (new URLSearchParams(location.search).get("tutorial") === "off" || off || seen) return;
+  try { localStorage.setItem(SEEN_KEY, "1"); } catch (e) {}
+  try { sessionStorage.setItem(SEEN_KEY, "1"); } catch (e) {}
+  startTour();
 }
 
 // Wiring
