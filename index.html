@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diplomatic Representatives Directory (concept prototype)</title>
+<!-- FONTS: Google Fonts is the only external resource. Fallback stacks below keep the page usable if blocked. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700&family=Noto+Serif:wght@700&display=swap">
+<style>
+/* All CSS is scoped to #mea-directory and prefixed mea- so a WordPress theme cannot clash with it. */
+#mea-directory{--t:#1a1a1a;--bg:#fff;--s:#f5f6f8;--b:#d0d5dd;--a:#1f3a5f;--g:#1e6b34;--am:#7a4b00;--amb:#fff4dc;--r:#a11d1d;
+ background:var(--bg);color:var(--t);font:400 1rem/1.5 "Noto Sans",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+ -webkit-text-size-adjust:100%;min-height:100vh;box-sizing:border-box;
+ padding:0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+@supports(min-height:100dvh){#mea-directory{min-height:100dvh}}
+#mea-directory *,#mea-directory *::before,#mea-directory *::after{box-sizing:border-box;min-width:0}
+#mea-directory [hidden]{display:none!important}
+#mea-directory .mea-wrap{max-width:72rem;margin:0 auto;padding:0 1rem}
+#mea-directory h1,#mea-directory h2.mea-h{font-family:"Noto Serif",Georgia,"Times New Roman",serif;font-weight:700;line-height:1.25;margin:0}
+#mea-directory h1{font-size:1.75rem;border-bottom:3px solid var(--a);padding-bottom:.5rem;margin-bottom:.5rem}
+#mea-directory h2.mea-h{font-size:1.25rem}
+#mea-directory p{margin:0 0 .5rem;max-width:60rem}
+#mea-directory a{color:var(--a);text-underline-offset:2px;transition:color .15s}
+#mea-directory a:hover{text-decoration-thickness:2px}
+#mea-directory :focus-visible{outline:3px solid var(--a);outline-offset:2px}
+#mea-directory .mea-head{padding-top:1.5rem;padding-bottom:1rem}
+/* Controls */
+#mea-directory button,#mea-directory select,#mea-directory input[type=search]{font:inherit;font-size:1rem;min-height:2.75rem;border:1px solid var(--a);border-radius:4px;background:var(--bg);color:var(--t);padding:.25rem .75rem}
+#mea-directory input::placeholder{color:var(--a);opacity:1}
+#mea-directory button{cursor:pointer;transition:background-color .15s,color .15s}
+#mea-directory button:hover{background:var(--s)}
+#mea-directory .mea-primary{background:var(--a);color:#fff;font-weight:500}
+#mea-directory .mea-primary:hover{background:var(--t)}
+#mea-directory .mea-link{border:0;background:none;color:var(--a);text-decoration:underline;padding:.25rem .5rem}
+#mea-directory label{display:block;font-weight:500;margin-bottom:.25rem}
+/* Search + filter bar */
+#mea-directory .mea-bar{background:var(--s);border-top:1px solid var(--b);border-bottom:1px solid var(--b);padding:1rem 0;z-index:5}
+@media(min-height:600px){#mea-directory .mea-bar{position:sticky;top:0}} /* sticky only on tall screens */
+#mea-directory .mea-bar input[type=search]{width:100%}
+#mea-directory details.mea-fd{margin-top:.5rem}
+#mea-directory details.mea-fd>summary{cursor:pointer;min-height:2.75rem;display:flex;align-items:center;font-weight:500;color:var(--a)}
+#mea-directory .mea-fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,11rem),1fr));gap:.5rem 1rem;align-items:end;padding-top:.5rem}
+#mea-directory .mea-fgrid select{width:100%}
+#mea-directory .mea-tools{display:flex;flex-wrap:wrap;gap:.5rem 1rem;align-items:center;padding:1rem 0 .5rem}
+#mea-directory .mea-tools .mea-count{font-weight:700;margin-right:auto}
+#mea-directory .mea-tools label{display:inline;margin:0 .5rem 0 0}
+#mea-directory .mea-dl{display:flex;flex-wrap:wrap}
+#mea-directory .mea-note{background:var(--amb);color:var(--am);border:1px solid var(--am);border-radius:4px;padding:.5rem .75rem;margin:.5rem 0}
+/* Results: compact list with thin separators */
+#mea-directory .mea-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,26rem),1fr));gap:0 2rem}
+#mea-directory .mea-rec{border-top:1px solid var(--b);padding:1rem 0;overflow-wrap:anywhere;scroll-margin-top:9rem}
+#mea-directory .mea-rec h3{font-size:1.125rem;margin:0}
+#mea-directory .mea-sm{font-size:.875rem}
+#mea-directory .mea-tag{font-size:.875rem;border:1px solid var(--a);border-radius:4px;padding:0 .375rem;margin-left:.25rem;white-space:nowrap}
+#mea-directory .mea-badge{display:inline-flex;gap:.375rem;align-items:center;font-weight:500;font-size:.875rem;border:1px solid currentColor;border-radius:4px;padding:.125rem .5rem;margin:.5rem 0}
+#mea-directory .mea-badge svg{flex:none;width:1rem;height:1rem}
+#mea-directory .mea-green{color:var(--g)}#mea-directory .mea-red{color:var(--r)}
+#mea-directory .mea-amber{color:var(--am);background:var(--amb)}
+#mea-directory .mea-neutral{color:var(--t)}
+#mea-directory .mea-contact{margin:.25rem 0}
+#mea-directory .mea-acts{display:flex;flex-wrap:wrap;gap:0 .5rem;margin-top:.25rem}
+#mea-directory .mea-acts a,#mea-directory .mea-acts button{font-size:.875rem;min-height:2.75rem;display:inline-flex;align-items:center}
+#mea-directory .mea-copybox{width:100%;margin-top:.25rem}
+#mea-directory .mea-state{border:1px solid var(--b);background:var(--s);border-radius:4px;padding:1rem;margin:1rem 0}
+#mea-directory .mea-nums{font-variant-numeric:tabular-nums}
+/* Why this redesign */
+#mea-directory details.mea-why{border-top:1px solid var(--b);margin-top:1.5rem;padding:1rem 0}
+#mea-directory details.mea-why>summary{cursor:pointer;min-height:2.75rem;display:flex;align-items:center}
+#mea-directory .mea-scroll{overflow-x:auto;border:1px solid var(--b);border-radius:4px}
+#mea-directory table{border-collapse:collapse;min-width:36rem;width:100%}
+#mea-directory th,#mea-directory td{text-align:left;vertical-align:top;padding:.5rem .75rem;border-bottom:1px solid var(--b)}
+#mea-directory th{background:var(--s)}
+#mea-directory footer{background:var(--s);border-top:1px solid var(--b);padding:1rem 0;font-size:.875rem;margin-top:1.5rem}
+#mea-directory .mea-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* FEATURE 12: tour layers. Dim layer blocks clicks; the frame's shadow does the dimming. */
+#mea-directory .mea-dim{position:fixed;inset:0;z-index:1000}
+#mea-directory .mea-dim.mea-solid{background:rgba(26,26,26,.7)}
+#mea-directory .mea-frame{position:fixed;z-index:1001;pointer-events:none;border:3px solid #fff;border-radius:4px;
+ box-shadow:0 0 0 100vmax rgba(26,26,26,.7)} /* FEATURE 12: spotlight shadow exception (the only box-shadow) */
+#mea-directory .mea-box{position:fixed;z-index:1002;background:#fff;color:var(--t);border-radius:8px;padding:1rem;width:min(22rem,calc(100vw - 1rem));max-height:60dvh;max-height:60vh;overflow:auto}
+@supports(max-height:60dvh){#mea-directory .mea-box{max-height:60dvh}}
+#mea-directory .mea-box.mea-dock{left:0;right:0;bottom:0;top:auto;width:auto;border-radius:8px 8px 0 0;padding-bottom:calc(1rem + env(safe-area-inset-bottom))}
+#mea-directory .mea-boxtop{display:flex;flex-direction:column;align-items:flex-end;float:right;margin-left:.5rem}
+#mea-directory .mea-x{width:2.75rem;padding:0;display:flex;align-items:center;justify-content:center}
+#mea-directory .mea-skip{font-size:.875rem}
+#mea-directory .mea-box h2{font-size:1.125rem;margin:.25rem 0;font-family:inherit}
+#mea-directory .mea-row{display:flex;gap:.5rem;margin:.75rem 0;clear:both}
+#mea-directory .mea-box label{font-weight:400;display:flex;gap:.5rem;align-items:center;min-height:2.75rem}
+#mea-directory .mea-box input[type=checkbox]{width:1.25rem;height:1.25rem}
+@media(prefers-reduced-motion:reduce){#mea-directory *{transition:none!important}}
+@media(pointer:coarse){#mea-directory .mea-acts a,#mea-directory .mea-acts button{min-width:2.75rem}}
+@media(min-width:40rem){#mea-directory h1{font-size:2.25rem}#mea-directory .mea-wrap{padding:0 1.5rem}}
+@media print{#mea-directory .mea-bar,#mea-directory .mea-tools,#mea-directory .mea-acts,#mea-directory .mea-head button,#mea-directory .mea-dim,#mea-directory .mea-frame,#mea-directory .mea-box{display:none!important}}
+</style>
+</head>
+<body>
+<div id="mea-directory">
+<div id="mea-page">
+<!-- A. Header -->
+<header class="mea-wrap mea-head">
+ <h1>Diplomatic Representatives Directory</h1>
+ <p>Find a country, see its representative, check tenure and contact details, then open the original source.</p>
+ <button type="button" class="mea-link" id="mea-howto">How to use</button>
+ <p class="mea-sm" id="mea-demo" hidden></p>
+</header>
+<!-- B. Search + filters (FEATURE 1, FEATURE 5) -->
+<div class="mea-bar"><div class="mea-wrap">
+ <div data-tour="search">
+  <label for="mea-q">Search by country</label>
+  <input type="search" id="mea-q" list="mea-countries" placeholder="For example: Kenya" autocomplete="off">
+  <datalist id="mea-countries"></datalist>
+ </div>
+ <details class="mea-fd" id="mea-fdet"><summary>Filters</summary>
+  <div class="mea-fgrid">
+   <div data-tour="filters" class="mea-fgrid" style="grid-column:1/-1;padding:0">
+    <div><label for="mea-f-region">Region</label><select id="mea-f-region"></select></div>
+    <div><label for="mea-f-type">Mission type</label><select id="mea-f-type"></select></div>
+    <div><label for="mea-f-dir">Direction</label><select id="mea-f-dir"></select></div>
+   </div>
+   <button type="button" id="mea-clear" data-tour="clear">Clear filters</button>
+  </div>
+ </details>
+</div></div>
+<!-- C. Results toolbar (FEATURE 6, FEATURE 8, FEATURE 11 count) -->
+<div class="mea-wrap">
+ <div class="mea-tools">
+  <span class="mea-count" id="mea-count" aria-live="polite"></span>
+  <span data-tour="sort"><label for="mea-sort">Sort by</label>
+   <select id="mea-sort"><option value="country">Country A to Z</option><option value="tenure">Tenure start, newest first</option><option value="verified">Last verified, newest first</option></select></span>
+  <span class="mea-dl" data-tour="downloads" id="mea-dl" hidden>
+   <button type="button" class="mea-link" id="mea-csv">Download CSV</button>
+   <button type="button" class="mea-link" id="mea-json">Download data.json</button>
+  </span>
+ </div>
+ <p class="mea-sm" id="mea-msg" role="status"></p>
+ <div class="mea-note" id="mea-banner" role="status" hidden></div>
+ <!-- D. Results -->
+ <main id="mea-results"><p class="mea-state">Loading directory data…</p></main>
+ <!-- E. Why this redesign -->
+ <details class="mea-why"><summary><h2 class="mea-h">Why this redesign</h2></summary>
+  <p>These are design problems this prototype addresses, not verified claims about every government website.</p>
+  <div class="mea-scroll" tabindex="0" role="region" aria-label="Before and after table, scrolls sideways">
+  <table><thead><tr><th>Design problem</th><th>Before</th><th>This prototype</th></tr></thead><tbody>
+   <tr><td>No freshness signal</td><td>No visible last-verified date; users cross-check manually.</td><td>Every record shows a verified date, elapsed time, a text status and an icon.</td></tr>
+   <tr><td>Poor findability</td><td>Data is split across Protocol Division lists and mission pages; no country, representative, tenure, contact view.</td><td>One search box, three filters and sorting lead to one list with tenure and contacts.</td></tr>
+   <tr><td>Limited machine readability</td><td>PDFs and static pages with inconsistent names, titles and dates.</td><td>One consistent data.json with ISO dates; CSV and JSON downloads.</td></tr>
+  </tbody></table></div>
+  <p class="mea-sm">Scroll the table sideways on narrow screens. Mission type in this sample is read from the workbook's organisation names (or inferred from the designation when blank); it is not a rule of diplomatic practice.</p>
+ </details>
+</div>
+<!-- F. Footer -->
+<footer><div class="mea-wrap">
+ <p>Concept prototype. Not affiliated with or endorsed by the Ministry of External Affairs. Data compiled from public sources. Current entries are sample placeholders.</p>
+ <p>Names, contacts and addresses come from a research workbook (Aug 2026) and are not re-verified here. Verification dates, tenure dates and source links are illustrative.</p>
+</div></footer>
+</div>
+<!-- G. Tour layers (FEATURE 12), hidden until opened -->
+<div class="mea-dim" id="mea-dim" hidden></div>
+<div class="mea-frame" id="mea-frame" hidden></div>
+<div class="mea-box" id="mea-box" role="dialog" aria-modal="true" aria-labelledby="mea-st" aria-describedby="mea-sx" hidden>
+ <div class="mea-boxtop">
+  <button type="button" class="mea-x" id="mea-x" aria-label="Close tutorial"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4l12 12M16 4L4 16" stroke="currentColor" stroke-width="2" fill="none"/></svg></button>
+  <button type="button" class="mea-link mea-skip" id="mea-skip">Skip intro tutorial</button>
+ </div>
+ <p class="mea-sm" id="mea-prog"></p>
+ <h2 id="mea-st" tabindex="-1"></h2>
+ <p id="mea-sx"></p>
+ <div class="mea-row"><button type="button" id="mea-back">Back</button><button type="button" class="mea-primary" id="mea-next">Next</button></div>
+ <label><input type="checkbox" id="mea-nomore"> Don't show this again</label>
+ <div class="mea-sr" id="mea-live" aria-live="polite"></div>
+</div>
+</div>
+<script>
+// WORDPRESS: on WordPress, change DATA_URL to the Media Library URL of data.json.
+const DATA_URL = "./data.json";
+const TOUR_KEY = "mea-tour-off";
+// ?tutorial=off hides the auto-start tour (for screenshots and Loom). ?asOf=YYYY-MM-DD sets a demo date.
+const $ = s => document.querySelector(s);
+let ALL = [], RAW = "", VIEW = [];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+// DEMO DATE: all "today" maths goes through this one helper pair.
+// dayNum() turns YYYY-MM-DD into whole days since 1970 at UTC midnight (no timezone drift); returns null if invalid.
+function dayNum(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || ""); if (!m) return null;
+  const t = Date.UTC(+m[1], +m[2] - 1, +m[3]), d = new Date(t);
+  return d.getUTCMonth() === +m[2] - 1 && d.getUTCDate() === +m[3] ? t / 864e5 : null;
+}
+const asOf = new URLSearchParams(location.search).get("asOf");
+const now = new Date();
+const TODAY = dayNum(asOf) ?? Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 864e5;
+const fmtDay = n => new Date(n * 864e5).toISOString().slice(0, 10);
+const ago = d => d < 60 ? (d === 0 ? "today" : d + (d === 1 ? " day ago" : " days ago")) : Math.floor(d / 30) + " months ago";
+
+// FEATURE 3: last-verified status (green 0-89, amber 90-180, red over 180; invalid or future = neutral)
+const ICON = {
+ green: '<path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="2" fill="none"/>',
+ amber: '<circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="2" fill="none"/><path d="M8 4v4l3 2" stroke="currentColor" stroke-width="2" fill="none"/>',
+ red: '<path d="M8 2l7 12H1z" stroke="currentColor" stroke-width="2" fill="none"/><path d="M8 6v4M8 12v1" stroke="currentColor" stroke-width="2"/>',
+ neutral: '<path d="M3 8h10" stroke="currentColor" stroke-width="2"/>'};
+function verif(r) {
+  const n = dayNum(r.lastVerified), d = n === null ? -1 : TODAY - n;
+  if (d < 0) return { c: "neutral", t: "Verification date unavailable" };
+  const c = d < 90 ? "green" : d <= 180 ? "amber" : "red";
+  return { c, t: { green: "Recently verified", amber: "Verification ageing", red: "Verification overdue" }[c] + " · Verified " + ago(d), d: r.lastVerified };
+}
+// FEATURE 7: tenure label and "Recently changed" (began within previous six calendar months, not in future)
+function tenure(r) {
+  const n = dayNum(r.tenureStart); if (n === null) return { s: "Tenure start unavailable", recent: false };
+  const d = new Date(n * 864e5), cut = new Date(TODAY * 864e5); cut.setUTCMonth(cut.getUTCMonth() - 6);
+  return { s: "Serving since " + MON[d.getUTCMonth()] + " " + d.getUTCFullYear(), recent: n <= TODAY && n * 864e5 >= cut.getTime(), my: MON[d.getUTCMonth()] + " " + d.getUTCFullYear() };
+}
+const firstNo = p => (p || "").split(/[,/;]/)[0].replace(/[^\d+]/g, "");
+
+// Load data: loading, success, empty, network failure and JSON parse failure are all handled.
+async function load() {
+  $("#mea-results").innerHTML = '<p class="mea-state">Loading directory data…</p>';
+  try {
+    const res = await fetch(DATA_URL, { cache: "no-cache" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    RAW = await res.text();
+    let data; try { data = JSON.parse(RAW); } catch (e) { throw new Error("The data file is not valid JSON."); }
+    if (!data || !Array.isArray(data.records)) throw new Error("The data file has no records list.");
+    ALL = data.records;
+    // OFFLINE: the service worker tags cached fallbacks with x-from-cache.
+    const b = $("#mea-banner");
+    if (res.headers.get("x-from-cache")) {
+      const sv = new Date(res.headers.get("x-saved-on") || ""), ok = !isNaN(sv);
+      b.textContent = "Offline: showing the copy saved on " + (ok ? sv.toLocaleDateString("en-GB") : "an earlier visit"); b.hidden = false;
+    } else b.hidden = true;
+    fillControls(); render(); $("#mea-dl").hidden = false;
+  } catch (err) {
+    ALL = []; $("#mea-dl").hidden = true; $("#mea-count").textContent = "";
+    $("#mea-results").innerHTML = '<div class="mea-state" role="alert"><p><strong>The directory could not be loaded.</strong> ' + esc(err.message) + '</p><p>Check your connection and try again. If you opened index.html by double-clicking, start a local server instead: <code>python3 -m http.server 8000</code>, then visit http://localhost:8000</p><button type="button" class="mea-primary" id="mea-retry">Retry</button></div>';
+    $("#mea-retry").addEventListener("click", async () => { await load(); });
+  }
+  if (!load.done) { load.done = true; autoTour(); }
+}
+function fillControls() {
+  const uniq = k => [...new Set(ALL.map(r => r[k]).filter(Boolean))].sort();
+  $("#mea-countries").innerHTML = uniq("country").map(c => '<option value="' + esc(c) + '">').join("");
+  [["region", "All regions"], ["type", "All mission types"], ["dir", "All directions"]].forEach(([id, all]) => {
+    const sel = $("#mea-f-" + id), keep = sel.value, k = { region: "region", type: "missionType", dir: "direction" }[id];
+    sel.innerHTML = '<option value="">' + all + '</option>' + uniq(k).map(v => '<option>' + esc(v) + '</option>').join("");
+    sel.value = keep;
+  });
+}
+// FEATURE 1 + 5 + 6: search, AND filters, sort
+function filtered() {
+  const q = $("#mea-q").value.trim().toLowerCase(), f = { region: $("#mea-f-region").value, missionType: $("#mea-f-type").value, direction: $("#mea-f-dir").value };
+  const list = ALL.filter(r => (!q || String(r.country).toLowerCase().includes(q)) && Object.keys(f).every(k => !f[k] || r[k] === f[k]));
+  const key = { country: null, tenure: "tenureStart", verified: "lastVerified" }[$("#mea-sort").value];
+  const val = r => (key && dayNum(r[key])) ?? -Infinity; // invalid dates sort last
+  return list.sort((a, b) => (key ? val(b) - val(a) : 0) || String(a.country).localeCompare(b.country));
+}
+// FEATURE 2: record details (plus F3, F4, F7, F9, F10 inside each record)
+function recHtml(r, i) {
+  const v = verif(r), t = tenure(r), first = i === 0, dt = n => first ? ' data-tour="' + n + '"' : "";
+  const em = r.email ? '<a href="mailto:' + esc(r.email) + '">' + esc(r.email) + '</a>' : "";
+  const ph = r.phone ? '<a class="mea-nums" href="tel:' + esc(firstNo(r.phone)) + '">' + esc(r.phone) + '</a>' : "";
+  const rep = "mailto:report@example.invalid?subject=" + encodeURIComponent("Error report: " + r.country) +
+    "&body=" + encodeURIComponent("Country: " + r.country + "\nName: " + r.name + "\nLast verified: " + r.lastVerified + "\n\nPlease describe the error:\n");
+  return '<li class="mea-rec" data-id="' + esc(r.id) + '"><h3>' + esc(r.country) + '<span class="mea-tag">' + esc(r.missionType) + '</span></h3>' +
+   '<p style="margin:0">' + (r.name ? '<strong>' + esc(r.name) + '</strong>' : "") + (r.name && r.designation ? ", " : "") + esc(r.designation || (r.name ? "" : "Representative not listed")) + '</p>' +
+   '<p class="mea-sm" style="margin:0">' + esc(r.direction) + ' · ' + esc(r.city) + '</p>' +
+   '<p class="mea-sm mea-nums" style="margin:0">' + esc(t.s) + (t.recent ? '<span class="mea-tag">Recently changed</span>' : "") + '</p>' +
+   (em || ph || r.address ? '<p class="mea-contact">' + [em, ph, esc(r.address)].filter(Boolean).join("<br>") + '</p>' : "") +
+   '<span class="mea-badge mea-' + v.c + ' mea-nums"' + dt("badge") + '><svg viewBox="0 0 16 16" aria-hidden="true">' + ICON[v.c] + '</svg>' + esc(v.t) + '</span>' +
+   '<p class="mea-sm" style="margin:0">' + (r.isPlaceholder ? "Sample data · dates and link illustrative" : "") + '</p>' +
+   // FEATURE 4: View original source (secondary link, new tab, noopener)
+   '<div class="mea-acts"><a href="' + esc(r.sourceUrl) + '" target="_blank" rel="noopener noreferrer"' + dt("source") + '>View original source' + (r.isPlaceholder ? " (illustrative sample link)" : "") + '</a>' +
+   '<button type="button" class="mea-link mea-copy" data-i="' + i + '"' + dt("copy") + '>Copy briefing line</button>' +
+   // FEATURE 10: Report an error. TODO: replace report@example.invalid above with your real error-report address. This opens your email app; nothing is sent automatically.
+   '<a href="' + rep + '"' + dt("report") + '>Report an error (opens your email app)</a></div><div class="mea-sm" role="status"></div></li>';
+}
+function render() {
+  VIEW = filtered();
+  $("#mea-count").textContent = VIEW.length + (VIEW.length === 1 ? " record found" : " records found");
+  $("#mea-results").innerHTML = VIEW.length ? '<ul class="mea-list">' + VIEW.map(recHtml).join("") + '</ul>' :
+   // FEATURE 11: empty state
+   '<div class="mea-state"><p><strong>No missions match your search.</strong></p><p>Try a shorter country name or remove a filter.</p><button type="button" class="mea-primary" id="mea-clear2">Clear filters</button></div>';
+  const c2 = $("#mea-clear2"); if (c2) c2.addEventListener("click", clearAll);
+  reposition();
+}
+function clearAll() { $("#mea-q").value = ""; ["region", "type", "dir"].forEach(i => $("#mea-f-" + i).value = ""); render(); }
+// FEATURE 9: copy briefing line, honest feedback, selectable fallback
+function briefing(r) {
+  const t = tenure(r), of = r.direction === "Indian mission abroad" ? "India to " : "";
+  return (r.isPlaceholder ? "[SAMPLE DATA] " : "") + (r.name ? "H.E. " + r.name + ", " : "") + (r.designation || "Representative") + " of " + of + r.country + (t.my ? ", since " + t.my : "");
+}
+async function copyLine(btn) {
+  const r = VIEW[+btn.dataset.i], text = briefing(r), out = btn.closest("li").querySelector("[role=status]");
+  try { await navigator.clipboard.writeText(text); out.textContent = "Copied to clipboard."; }
+  catch (e) {
+    out.innerHTML = 'Could not copy automatically. Select and copy this text: <input class="mea-copybox" readonly value="' + esc(text) + '">';
+    const inp = out.querySelector("input"); inp.focus(); inp.select();
+  }
+}
+// FEATURE 8: CSV (UTF-8 BOM, escaped, formula-safe) and JSON downloads
+const COLS = ["id","country","region","missionType","direction","name","designation","city","tenureStart","email","phone","address","sourceUrl","lastVerified","isPlaceholder"];
+function csvCell(v) { v = String(v ?? ""); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; }
+function save(text, type, name) {
+  const msg = $("#mea-msg"), a = document.createElement("a"), url = URL.createObjectURL(new Blob([text], { type }));
+  if (!("download" in a)) { window.open(url, "_blank"); msg.textContent = "Your browser cannot save files directly, so the data opened in a new tab."; return; }
+  a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+  msg.textContent = "Downloaded " + name + ".";
+}
+function today() { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+
+// FEATURE 12: spotlight tour. Edit the wording here.
+const STEPS = [
+ { sel: "[data-tour=search]", title: "Search by country", text: "Type a country name. The list narrows as you type; there is no Search button." },
+ { sel: "[data-tour=filters]", title: "Filters", text: "Narrow the list by region, mission type or direction. They work together with the search box." },
+ { sel: "[data-tour=clear]", title: "Clear filters", text: "Resets the search and all filters in one click." },
+ { sel: "[data-tour=sort]", title: "Sort", text: "Order the results by country, tenure start or last verified." },
+ { sel: "[data-tour=badge]", title: "Verification badge", text: "Green = recently verified, amber = ageing, red = overdue. Always shown with text, not just colour." },
+ { sel: "[data-tour=source]", title: "View original source", text: "Opens the original source page in a new tab." },
+ { sel: "[data-tour=copy]", title: "Copy briefing line", text: "Copies a ready-to-paste line about this representative." },
+ { sel: "[data-tour=report]", title: "Report an error", text: "Opens your email app with a pre-filled message. Nothing is sent automatically." },
+ { sel: "[data-tour=downloads]", title: "Downloads", text: "Save the current results as a spreadsheet file, or the full dataset as JSON." }];
+const tour = { open: false, i: 0, steps: [], det: false };
+const dim = $("#mea-dim"), frame = $("#mea-frame"), box = $("#mea-box"), page = $("#mea-page");
+const shown = el => !!el && el.getClientRects().length > 0;
+const dock = () => innerWidth < 640 || innerHeight < 512;
+function startTour() {
+  try {
+    const d = $("#mea-fdet"); tour.det = d.open; d.open = true; // Filters stay open during the tour, then are restored
+    tour.steps = STEPS.filter(s => shown(document.querySelector(s.sel)));
+    if (!tour.steps.length) tour.steps = [{ title: "Directory not loaded", text: "The directory data is not loaded yet. Close this and press Retry, or reload the page." }];
+    tour.i = 0; tour.open = true;
+    if ("inert" in page) page.inert = true; else page.setAttribute("aria-hidden", "true");
+    dim.hidden = box.hidden = false; showStep(); $("#mea-st").focus();
+  } catch (e) { closeTour(); }
+}
+function showStep() {
+  const s = tour.steps[tour.i], n = tour.steps.length, el = s.sel ? document.querySelector(s.sel) : null;
+  $("#mea-prog").textContent = "Step " + (tour.i + 1) + " of " + n;
+  $("#mea-st").textContent = s.title; $("#mea-sx").textContent = s.text;
+  $("#mea-back").hidden = tour.i === 0; $("#mea-next").textContent = tour.i === n - 1 ? "Start using the directory" : "Next";
+  $("#mea-live").textContent = s.title + ". " + s.text;
+  if (el) { try { el.scrollIntoView({ block: "center", behavior: "auto" }); if (dock()) scrollBy(0, el.getBoundingClientRect().top - innerHeight * 0.12); } catch (e) {} }
+  place();
+}
+function place() {
+  if (!tour.open) return;
+  try {
+    const s = tour.steps[tour.i], el = s.sel ? document.querySelector(s.sel) : null, r = shown(el) ? el.getBoundingClientRect() : null;
+    frame.hidden = !r; dim.classList.toggle("mea-solid", !r);
+    const docked = !r && dock() || r && dock();
+    box.classList.toggle("mea-dock", docked);
+    if (r) frame.style.cssText = "top:" + (r.top - 4) + "px;left:" + (r.left - 4) + "px;width:" + (r.width + 8) + "px;height:" + (r.height + 8) + "px";
+    if (docked) { box.style.top = box.style.left = ""; return; }
+    const w = box.offsetWidth, h = box.offsetHeight; let top, left;
+    if (!r) { top = (innerHeight - h) / 2; left = (innerWidth - w) / 2; }
+    else { top = r.bottom + 12; if (top + h > innerHeight - 8) top = r.top - h - 12; left = r.left; }
+    box.style.top = Math.max(8, Math.min(top, innerHeight - h - 8)) + "px";
+    box.style.left = Math.max(8, Math.min(left, innerWidth - w - 8)) + "px";
+  } catch (e) { frame.hidden = true; dim.classList.add("mea-solid"); box.classList.add("mea-dock"); } // never leave an undismissable overlay
+}
+let raf = 0;
+function reposition() { if (tour.open && !raf) raf = requestAnimationFrame(() => { raf = 0; place(); }); }
+function closeTour() {
+  if (tour.open && $("#mea-nomore").checked) { try { localStorage.setItem(TOUR_KEY, "1"); } catch (e) {} }
+  tour.open = false; dim.hidden = frame.hidden = box.hidden = true;
+  if ("inert" in page) page.inert = false; page.removeAttribute("aria-hidden");
+  $("#mea-fdet").open = tour.det; $("#mea-q").focus();
+}
+function autoTour() {
+  let off = false; try { off = localStorage.getItem(TOUR_KEY) === "1"; } catch (e) {}
+  if (new URLSearchParams(location.search).get("tutorial") !== "off" && !off) startTour();
+}
+
+// Wiring
+["input", "change"].forEach(ev => $("#mea-directory").addEventListener(ev, e => { if (e.target.matches("#mea-q,#mea-f-region,#mea-f-type,#mea-f-dir,#mea-sort")) render(); }));
+$("#mea-clear").addEventListener("click", clearAll);
+$("#mea-results").addEventListener("click", e => { const b = e.target.closest(".mea-copy"); if (b) copyLine(b); });
+$("#mea-csv").addEventListener("click", () => {
+  const rows = [COLS.map(csvCell).join(",")].concat(filtered().map(r => COLS.map(c => csvCell(r[c])).join(",")));
+  save("\ufeff" + rows.join("\r\n"), "text/csv;charset=utf-8", "mea-directory-" + today() + ".csv");
+});
+$("#mea-json").addEventListener("click", () => save(RAW, "application/json", "data.json"));
+$("#mea-howto").addEventListener("click", startTour);
+$("#mea-x").addEventListener("click", closeTour); $("#mea-skip").addEventListener("click", closeTour);
+$("#mea-back").addEventListener("click", () => { if (tour.i > 0) { tour.i--; showStep(); } });
+$("#mea-next").addEventListener("click", () => { if (tour.i >= tour.steps.length - 1) closeTour(); else { tour.i++; showStep(); } });
+document.addEventListener("keydown", e => {
+  if (!tour.open) return;
+  if (e.key === "Escape") { closeTour(); return; }
+  if (e.key === "Tab") {
+    const f = [...box.querySelectorAll("button,input")].filter(x => !x.hidden), i = f.indexOf(document.activeElement);
+    if (e.shiftKey && i <= 0) { f[f.length - 1].focus(); e.preventDefault(); } else if (!e.shiftKey && i === f.length - 1) { f[0].focus(); e.preventDefault(); }
+  }
+});
+addEventListener("resize", reposition); addEventListener("orientationchange", reposition); addEventListener("scroll", reposition, { passive: true });
+// Filters panel: open on wide screens, collapsed on narrow ones (user can still toggle it).
+const mq = matchMedia("(min-width: 40rem)"); $("#mea-fdet").open = mq.matches;
+if (mq.addEventListener) mq.addEventListener("change", e => { if (!tour.open) $("#mea-fdet").open = e.matches; });
+if (dayNum(asOf) !== null) { const d = $("#mea-demo"); d.textContent = "Demo date: " + fmtDay(TODAY); d.hidden = false; }
+// OFFLINE: register only where supported and on HTTPS or localhost; failure is silent.
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("./sw.js").catch(() => {});
+load();
+</script>
+</body>
+</html>
