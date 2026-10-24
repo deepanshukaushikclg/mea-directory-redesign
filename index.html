@@ -30,14 +30,16 @@
 #mea-directory button,#mea-directory select,#mea-directory input[type=search]{font:inherit;font-size:1rem;min-height:2.75rem;border:1px solid var(--a);border-radius:4px;background:var(--bg);color:var(--t);padding:.25rem .75rem}
 #mea-directory input::placeholder{color:var(--a);opacity:1}
 #mea-directory button{cursor:pointer;transition:background-color .15s,color .15s}
-#mea-directory button:hover{background:var(--s)}
+@media(hover:hover){#mea-directory button:hover{background:var(--s)}}
 #mea-directory .mea-primary{background:var(--a);color:#fff;font-weight:500}
-#mea-directory .mea-primary:hover{background:var(--t)}
+@media(hover:hover){#mea-directory .mea-primary:hover{background:var(--t)}}
+#mea-directory .mea-primary:active{background:var(--a)}
 #mea-directory .mea-link{border:0;background:none;color:var(--a);text-decoration:underline;padding:.25rem .5rem}
 #mea-directory label{display:block;font-weight:500;margin-bottom:.25rem}
 /* Search + filter bar */
 #mea-directory .mea-bar{background:var(--s);border-top:1px solid var(--b);border-bottom:1px solid var(--b);padding:1rem 0;z-index:5}
 @media(min-height:600px){#mea-directory .mea-bar{position:sticky;top:0}} /* sticky only on tall screens */
+#mea-directory.mea-touring .mea-bar{position:static}
 #mea-directory .mea-bar input[type=search]{width:100%}
 #mea-directory details.mea-fd{margin-top:.5rem}
 #mea-directory details.mea-fd>summary{cursor:pointer;min-height:2.75rem;display:flex;align-items:center;font-weight:500;color:var(--a)}
@@ -82,11 +84,16 @@
 #mea-directory .mea-box{position:fixed;z-index:1002;background:#fff;color:var(--t);border-radius:8px;padding:1rem;width:min(22rem,calc(100vw - 1rem));max-height:60dvh;max-height:60vh;overflow:auto}
 @supports(max-height:60dvh){#mea-directory .mea-box{max-height:60dvh}}
 #mea-directory .mea-box.mea-dock{left:0;right:0;bottom:0;top:auto;width:auto;border-radius:8px 8px 0 0;padding-bottom:calc(1rem + env(safe-area-inset-bottom))}
-#mea-directory .mea-boxtop{display:flex;flex-direction:column;align-items:flex-end;float:right;margin-left:.5rem}
-#mea-directory .mea-x{width:2.75rem;padding:0;display:flex;align-items:center;justify-content:center}
-#mea-directory .mea-skip{font-size:.875rem}
+#mea-directory .mea-boxtop{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-bottom:.25rem}
+#mea-directory .mea-boxtop p{margin:0}
+#mea-directory .mea-x{flex:none;width:2.75rem;padding:0;display:flex;align-items:center;justify-content:center}
+#mea-directory .mea-skip{font-size:.875rem;white-space:nowrap}
+#mea-directory .mea-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:0 1rem}
 #mea-directory .mea-box h2{font-size:1.125rem;margin:.25rem 0;font-family:inherit}
-#mea-directory .mea-row{display:flex;gap:.5rem;margin:.75rem 0;clear:both}
+#mea-directory .mea-box h2:focus,#mea-directory .mea-box h2:focus-visible{outline:none}
+#mea-directory .mea-row{display:flex;gap:.5rem;margin:.75rem 0}
+#mea-directory .mea-box{box-shadow:0 0 0 2px var(--a)}
+#mea-directory .mea-frame{outline:2px solid var(--a);outline-offset:0}
 #mea-directory .mea-box label{font-weight:400;display:flex;gap:.5rem;align-items:center;min-height:2.75rem}
 #mea-directory .mea-box input[type=checkbox]{width:1.25rem;height:1.25rem}
 @media(prefers-reduced-motion:reduce){#mea-directory *{transition:none!important}}
@@ -161,14 +168,16 @@
 <div class="mea-frame" id="mea-frame" hidden></div>
 <div class="mea-box" id="mea-box" role="dialog" aria-modal="true" aria-labelledby="mea-st" aria-describedby="mea-sx" hidden>
  <div class="mea-boxtop">
-  <button type="button" class="mea-x" id="mea-x" aria-label="Close tutorial"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4l12 12M16 4L4 16" stroke="currentColor" stroke-width="2" fill="none"/></svg></button>
-  <button type="button" class="mea-link mea-skip" id="mea-skip">Skip intro tutorial</button>
+  <p class="mea-sm" id="mea-prog"></p>
+  <button type="button" class="mea-x" id="mea-x" aria-label="Close tutorial (Esc)"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4l12 12M16 4L4 16" stroke="currentColor" stroke-width="2" fill="none"/></svg></button>
  </div>
- <p class="mea-sm" id="mea-prog"></p>
  <h2 id="mea-st" tabindex="-1"></h2>
  <p id="mea-sx"></p>
  <div class="mea-row"><button type="button" id="mea-back">Back</button><button type="button" class="mea-primary" id="mea-next">Next</button></div>
- <label><input type="checkbox" id="mea-nomore"> Don't show this again</label>
+ <div class="mea-foot">
+  <label><input type="checkbox" id="mea-nomore"> Don't show this again</label>
+  <button type="button" class="mea-link mea-skip" id="mea-skip">Skip intro tutorial</button>
+ </div>
  <div class="mea-sr" id="mea-live" aria-live="polite"></div>
 </div>
 </div>
@@ -332,7 +341,7 @@ function startTour() {
     if (!tour.steps.length) tour.steps = [{ title: "Directory not loaded", text: "The directory data is not loaded yet. Close this and press Retry, or reload the page." }];
     tour.i = 0; tour.open = true;
     if ("inert" in page) page.inert = true; else page.setAttribute("aria-hidden", "true");
-    dim.hidden = box.hidden = false; showStep(); $("#mea-st").focus();
+    $("#mea-directory").classList.add("mea-touring"); dim.hidden = box.hidden = false; showStep(); $("#mea-st").focus({ preventScroll: true });
   } catch (e) { closeTour(); }
 }
 function showStep() {
@@ -341,7 +350,12 @@ function showStep() {
   $("#mea-st").textContent = s.title; $("#mea-sx").textContent = s.text;
   $("#mea-back").hidden = tour.i === 0; $("#mea-next").textContent = tour.i === n - 1 ? "Start using the directory" : "Next";
   $("#mea-live").textContent = s.title + ". " + s.text;
-  if (el) { try { el.scrollIntoView({ block: "center", behavior: "auto" }); if (dock()) scrollBy(0, el.getBoundingClientRect().top - innerHeight * 0.12); } catch (e) {} }
+  box.classList.toggle("mea-dock", dock());
+  if (el && shown(el)) { try {
+    const r = el.getBoundingClientRect(), free = innerHeight - box.offsetHeight - 24; // visible area above/below the tutorial box
+    const want = r.height > free - 16 ? 8 : Math.max(8, (free - r.height) / 2 + 8);
+    window.scrollBy(0, r.top - want);
+  } catch (e) {} }
   place();
 }
 function place() {
@@ -364,7 +378,7 @@ let raf = 0;
 function reposition() { if (tour.open && !raf) raf = requestAnimationFrame(() => { raf = 0; place(); }); }
 function closeTour() {
   if (tour.open && $("#mea-nomore").checked) { try { localStorage.setItem(TOUR_KEY, "1"); } catch (e) {} }
-  tour.open = false; dim.hidden = frame.hidden = box.hidden = true;
+  tour.open = false; dim.hidden = frame.hidden = box.hidden = true; $("#mea-directory").classList.remove("mea-touring");
   if ("inert" in page) page.inert = false; page.removeAttribute("aria-hidden");
   $("#mea-fdet").open = tour.det; $("#mea-q").focus();
 }
@@ -386,14 +400,14 @@ $("#mea-howto").addEventListener("click", startTour);
 $("#mea-x").addEventListener("click", closeTour); $("#mea-skip").addEventListener("click", closeTour);
 $("#mea-back").addEventListener("click", () => { if (tour.i > 0) { tour.i--; showStep(); } });
 $("#mea-next").addEventListener("click", () => { if (tour.i >= tour.steps.length - 1) closeTour(); else { tour.i++; showStep(); } });
-document.addEventListener("keydown", e => {
+window.addEventListener("keydown", e => {
   if (!tour.open) return;
-  if (e.key === "Escape") { closeTour(); return; }
+  if (e.key === "Escape" || e.key === "Esc" || e.keyCode === 27) { e.preventDefault(); e.stopPropagation(); closeTour(); return; }
   if (e.key === "Tab") {
     const f = [...box.querySelectorAll("button,input")].filter(x => !x.hidden), i = f.indexOf(document.activeElement);
     if (e.shiftKey && i <= 0) { f[f.length - 1].focus(); e.preventDefault(); } else if (!e.shiftKey && i === f.length - 1) { f[0].focus(); e.preventDefault(); }
   }
-});
+}, true);
 addEventListener("resize", reposition); addEventListener("orientationchange", reposition); addEventListener("scroll", reposition, { passive: true });
 // Filters panel: open on wide screens, collapsed on narrow ones (user can still toggle it).
 const mq = matchMedia("(min-width: 40rem)"); $("#mea-fdet").open = mq.matches;
