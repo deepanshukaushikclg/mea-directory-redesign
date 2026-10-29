@@ -108,7 +108,8 @@
 <!-- A. Header -->
 <header class="mea-wrap mea-head">
  <h1>Diplomatic Representatives Directory</h1>
- <p>Find a country, see its representative, check tenure and contact details, then open the original source.</p>
+ <p>Search and organise sample diplomatic-representative records across African countries, review contact and tenure fields, and reuse filtered results for research.</p>
+ <p class="mea-sm"><strong>This is an independent concept prototype. It is not affiliated with or endorsed by the Ministry of External Affairs.</strong></p>
  <button type="button" class="mea-link" id="mea-howto">How to use</button>
  <p class="mea-sm" id="mea-demo" hidden></p>
 </header>
@@ -135,7 +136,7 @@
  <div class="mea-tools">
   <span class="mea-count" id="mea-count" aria-live="polite"></span>
   <span data-tour="sort"><label for="mea-sort">Sort by</label>
-   <select id="mea-sort"><option value="country">Country A to Z</option><option value="tenure">Tenure start, newest first</option><option value="verified">Last verified, newest first</option></select></span>
+   <select id="mea-sort"><option value="country">Country A to Z</option><option value="tenure">Tenure start, newest first</option><option value="sampleDate">Sample date, newest first</option></select></span>
   <span class="mea-dl" data-tour="downloads" id="mea-dl" hidden>
    <button type="button" class="mea-link" id="mea-csv">Download CSV</button>
    <button type="button" class="mea-link" id="mea-json">Download data.json</button>
@@ -143,24 +144,32 @@
  </div>
  <p class="mea-sm" id="mea-msg" role="status"></p>
  <div class="mea-note" id="mea-banner" role="status" hidden></div>
+ <div class="mea-state" id="mea-disc">
+  <p class="mea-sm"><strong>Coverage:</strong> This concept currently focuses on heads of mission. It does not yet represent every honorary consulate, mission contact, fax number or office-hours entry shown on official pages.</p>
+  <p class="mea-sm">Records come from a research workbook and have not been re-verified for this prototype. Missing fields are left blank rather than inferred.</p>
+ </div>
  <!-- D. Results -->
  <main id="mea-results"><p class="mea-state">Loading directory data…</p></main>
  <!-- E. Why this redesign -->
  <details class="mea-why"><summary><h2 class="mea-h">Why this redesign</h2></summary>
-  <p>These are design problems this prototype addresses, not verified claims about every government website.</p>
-  <div class="mea-scroll" tabindex="0" role="region" aria-label="Before and after table, scrolls sideways">
-  <table><thead><tr><th>Design problem</th><th>Before</th><th>This prototype</th></tr></thead><tbody>
-   <tr><td>No freshness signal</td><td>No visible last-verified date; users cross-check manually.</td><td>Every record shows a verified date, elapsed time, a text status and an icon.</td></tr>
-   <tr><td>Poor findability</td><td>Data is split across Protocol Division lists and mission pages; no country, representative, tenure, contact view.</td><td>One search box, three filters and sorting lead to one list with tenure and contacts.</td></tr>
-   <tr><td>Limited machine readability</td><td>PDFs and static pages with inconsistent names, titles and dates.</td><td>One consistent data.json with ISO dates; CSV and JSON downloads.</td></tr>
+  <p>How the official MEA Protocol Division pages (as seen in screenshots) compare with this prototype.</p>
+  <div class="mea-scroll" tabindex="0" role="region" aria-label="Official page and prototype comparison, scrolls sideways">
+  <table><thead><tr><th>Area</th><th>Official (screenshots reviewed)</th><th>This prototype</th></tr></thead><tbody>
+   <tr><td>Findability</td><td>Country/city search and an A-Z index exist, but one country page at a time.</td><td>Region filter and one list across countries.</td></tr>
+   <tr><td>Freshness</td><td>No visible last-updated date in the screenshots reviewed.</td><td>Sample-date indicator showing how it could work; dates are illustrative.</td></tr>
+   <tr><td>Reuse/export</td><td>Contacts shown as web cards; no CSV/JSON export visible.</td><td>Copy briefing line; export filtered records as CSV/JSON.</td></tr>
+   <tr><td>Scope</td><td>Covers missions in India, including honorary consulates in other cities.</td><td>Adds an incoming/outgoing direction filter from the workbook; not every mission.</td></tr>
+   <tr><td>Tenure</td><td>Not visible in the screenshots.</td><td>Tenure from the workbook, illustrative until verified.</td></tr>
+   <tr><td>Data quality</td><td>Screenshots show a duplicate/unclear Afghanistan entry, countries mixed with organisations in the index, inconsistent capitalisation, an empty fax icon, and repeated country headings for different missions.</td><td>Consistent record structure; does not guarantee accuracy.</td></tr>
   </tbody></table></div>
-  <p class="mea-sm">Scroll the table sideways on narrow screens. Mission type in this sample is read from the workbook's organisation names (or inferred from the designation when blank); it is not a rule of diplomatic practice.</p>
+  <p class="mea-sm">Comparison based on screenshots of the MEA Protocol Division index and Kenya mission page. Independent concept; not affiliated with or endorsed by MEA.</p>
+  <p class="mea-sm">Mission type in this sample is read from the workbook's organisation names (or inferred from the designation when blank); it is not a rule of diplomatic practice.</p>
  </details>
 </div>
 <!-- F. Footer -->
 <footer><div class="mea-wrap">
- <p>Concept prototype. Not affiliated with or endorsed by the Ministry of External Affairs. Data compiled from public sources. Current entries are sample placeholders.</p>
- <p>Names, contacts and addresses come from a research workbook (Aug 2026) and are not re-verified here. Verification dates, tenure dates and source links are illustrative.</p>
+ <p>This is an independent concept prototype. It is not affiliated with or endorsed by the Ministry of External Affairs. Current entries are sample placeholders.</p>
+ <p>Names, contacts and addresses come from a research workbook (Aug 2026) and are not re-verified here. Sample dates and tenure dates are illustrative. Source links are not enabled until checked.</p>
 </div></footer>
 </div>
 <!-- G. Tour layers (FEATURE 12), hidden until opened -->
@@ -204,17 +213,12 @@ const TODAY = dayNum(asOf) ?? Date.UTC(now.getFullYear(), now.getMonth(), now.ge
 const fmtDay = n => new Date(n * 864e5).toISOString().slice(0, 10);
 const ago = d => d < 60 ? (d === 0 ? "today" : d + (d === 1 ? " day ago" : " days ago")) : Math.floor(d / 30) + " months ago";
 
-// FEATURE 3: last-verified status (green 0-89, amber 90-180, red over 180; invalid or future = neutral)
-const ICON = {
- green: '<path d="M3 8l3 3 7-7" stroke="currentColor" stroke-width="2" fill="none"/>',
- amber: '<circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="2" fill="none"/><path d="M8 4v4l3 2" stroke="currentColor" stroke-width="2" fill="none"/>',
- red: '<path d="M8 2l7 12H1z" stroke="currentColor" stroke-width="2" fill="none"/><path d="M8 6v4M8 12v1" stroke="currentColor" stroke-width="2"/>',
- neutral: '<path d="M3 8h10" stroke="currentColor" stroke-width="2"/>'};
+// FEATURE 3: sample-date display. Nothing here implies verification; every record is labelled "Sample record".
+const ICON = {neutral: '<path d="M3 8h10" stroke="currentColor" stroke-width="2"/>'};
 function verif(r) {
-  const n = dayNum(r.lastVerified), d = n === null ? -1 : TODAY - n;
-  if (d < 0) return { c: "neutral", t: "Verification date unavailable" };
-  const c = d < 90 ? "green" : d <= 180 ? "amber" : "red";
-  return { c, t: { green: "Recently verified", amber: "Verification ageing", red: "Verification overdue" }[c] + " · Verified " + ago(d), d: r.lastVerified };
+  const n = dayNum(r.sampleDate), d = n === null ? -1 : TODAY - n;
+  if (d < 0) return { c: "neutral", t: "Sample record · Sample date unavailable" };
+  return { c: "neutral", t: "Sample record · Sample date " + r.sampleDate + " · Time since sample date: " + ago(d) };
 }
 // FEATURE 7: tenure label and "Recently changed" (began within previous six calendar months, not in future)
 function tenure(r) {
@@ -261,7 +265,7 @@ function fillControls() {
 function filtered() {
   const q = $("#mea-q").value.trim().toLowerCase(), f = { region: $("#mea-f-region").value, missionType: $("#mea-f-type").value, direction: $("#mea-f-dir").value };
   const list = ALL.filter(r => (!q || String(r.country).toLowerCase().includes(q)) && Object.keys(f).every(k => !f[k] || r[k] === f[k]));
-  const key = { country: null, tenure: "tenureStart", verified: "lastVerified" }[$("#mea-sort").value];
+  const key = { country: null, tenure: "tenureStart", sampleDate: "sampleDate" }[$("#mea-sort").value];
   const val = r => (key && dayNum(r[key])) ?? -Infinity; // invalid dates sort last
   return list.sort((a, b) => (key ? val(b) - val(a) : 0) || String(a.country).localeCompare(b.country));
 }
@@ -271,16 +275,16 @@ function recHtml(r, i) {
   const em = r.email ? '<a href="mailto:' + esc(r.email) + '">' + esc(r.email) + '</a>' : "";
   const ph = r.phone ? '<a class="mea-nums" href="tel:' + esc(firstNo(r.phone)) + '">' + esc(r.phone) + '</a>' : "";
   const rep = "mailto:report@example.invalid?subject=" + encodeURIComponent("Error report: " + r.country) +
-    "&body=" + encodeURIComponent("Country: " + r.country + "\nName: " + r.name + "\nLast verified: " + r.lastVerified + "\n\nPlease describe the error:\n");
+    "&body=" + encodeURIComponent("Country: " + r.country + "\nName: " + r.name + "\nSample date: " + r.sampleDate + "\n\nPlease describe the error:\n");
   return '<li class="mea-rec" data-id="' + esc(r.id) + '"><h3>' + esc(r.country) + '<span class="mea-tag">' + esc(r.missionType) + '</span></h3>' +
    '<p style="margin:0">' + (r.name ? '<strong>' + esc(r.name) + '</strong>' : "") + (r.name && r.designation ? ", " : "") + esc(r.designation || (r.name ? "" : "Representative not listed")) + '</p>' +
    '<p class="mea-sm" style="margin:0">' + esc(r.direction) + ' · ' + esc(r.city) + '</p>' +
    '<p class="mea-sm mea-nums" style="margin:0">' + esc(t.s) + (t.recent ? '<span class="mea-tag">Recently changed</span>' : "") + '</p>' +
-   (em || ph || r.address ? '<p class="mea-contact">' + [em, ph, esc(r.address)].filter(Boolean).join("<br>") + '</p>' : "") +
+   (em || ph || r.address || r.fax || r.officeHours ? '<p class="mea-contact">' + [em, ph, r.fax ? "Fax: " + esc(r.fax) : "", esc(r.address), r.officeHours ? "Office hours: " + esc(r.officeHours) : ""].filter(Boolean).join("<br>") + '</p>' : "") +
    '<span class="mea-badge mea-' + v.c + ' mea-nums"' + dt("badge") + '><svg viewBox="0 0 16 16" aria-hidden="true">' + ICON[v.c] + '</svg>' + esc(v.t) + '</span>' +
-   '<p class="mea-sm" style="margin:0">' + (r.isPlaceholder ? "Sample data · dates and link illustrative" : "") + '</p>' +
+   '<p class="mea-sm" style="margin:0">' + (r.isPlaceholder ? "Sample data · dates illustrative" : "") + '</p>' +
    // FEATURE 4: View original source (secondary link, new tab, noopener)
-   '<div class="mea-acts"><a href="' + esc(r.sourceUrl) + '" target="_blank" rel="noopener noreferrer"' + dt("source") + '>View original source' + (r.isPlaceholder ? " (illustrative sample link)" : "") + '</a>' +
+   '<div class="mea-acts">' + (r.sourceStatus === "verified" && r.sourceUrl ? '<a href="' + esc(r.sourceUrl) + '" target="_blank" rel="noopener noreferrer"' + dt("source") + '>Source page</a>' : '<span class="mea-sm"' + dt("source") + '>Source link illustrative</span>') + '' +
    '<button type="button" class="mea-link mea-copy" data-i="' + i + '"' + dt("copy") + '>Copy briefing line</button>' +
    // FEATURE 10: Report an error. TODO: replace report@example.invalid above with your real error-report address. This opens your email app; nothing is sent automatically.
    '<a href="' + rep + '"' + dt("report") + '>Report an error (opens your email app)</a></div><div class="mea-sm" role="status"></div></li>';
@@ -309,7 +313,7 @@ async function copyLine(btn) {
   }
 }
 // FEATURE 8: CSV (UTF-8 BOM, escaped, formula-safe) and JSON downloads
-const COLS = ["id","country","region","missionType","direction","name","designation","city","tenureStart","email","phone","address","sourceUrl","lastVerified","isPlaceholder"];
+const COLS = ["id","country","region","missionType","direction","name","designation","city","tenureStart","email","phone","fax","officeHours","address","sourceUrl","sourceStatus","sampleDate","isPlaceholder"];
 function csvCell(v) { v = String(v ?? ""); if (/^[=+\-@]/.test(v)) v = "'" + v; return '"' + v.replace(/"/g, '""') + '"'; }
 function save(text, type, name) {
   const msg = $("#mea-msg"), a = document.createElement("a"), url = URL.createObjectURL(new Blob([text], { type }));
@@ -324,9 +328,9 @@ const STEPS = [
  { sel: "[data-tour=search]", title: "Search by country", text: "Type a country name. The list narrows as you type; there is no Search button." },
  { sel: "[data-tour=filters]", title: "Filters", text: "Narrow the list by region, mission type or direction. They work together with the search box." },
  { sel: "[data-tour=clear]", title: "Clear filters", text: "Resets the search and all filters in one click." },
- { sel: "[data-tour=sort]", title: "Sort", text: "Order the results by country, tenure start or last verified." },
- { sel: "[data-tour=badge]", title: "Verification badge", text: "Green = recently verified, amber = ageing, red = overdue. Always shown with text, not just colour." },
- { sel: "[data-tour=source]", title: "View original source", text: "Opens the original source page in a new tab." },
+ { sel: "[data-tour=sort]", title: "Sort", text: "Order the results by country, tenure start or sample date." },
+ { sel: "[data-tour=badge]", title: "Sample record label", text: "Every record is a sample. The sample date is illustrative and does not mean the record was verified." },
+ { sel: "[data-tour=source]", title: "Source link", text: "Shows a source page link only for records marked verified. Otherwise it says the link is illustrative." },
  { sel: "[data-tour=copy]", title: "Copy briefing line", text: "Copies a ready-to-paste line about this representative." },
  { sel: "[data-tour=report]", title: "Report an error", text: "Opens your email app with a pre-filled message. Nothing is sent automatically." },
  { sel: "[data-tour=downloads]", title: "Downloads", text: "Save the current results as a spreadsheet file, or the full dataset as JSON." }];
